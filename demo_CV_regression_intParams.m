@@ -18,7 +18,7 @@ optionsCV.mode = 'leave-one-out';
 optionsCV.shuffleData = false;
 optionsCV.verbose = true;
 optionsCV.p = 1;
-[new_model] = matLearn_regression_CV(@matLearn_regression_regressOnOneMD, Xtrain, ytrain, optionsCV);
+[new_model] = matLearn_regression_CV(@matLearn_regression_CV_testModel_intParams, Xtrain, ytrain, optionsCV);
 
 % Measure test error
 yhat = new_model.predict(new_model,Xtest);
@@ -37,7 +37,7 @@ optionsCV.paramValues = [.0001 .001 .01 .1 0.4 0.5];
 % optionsCV.nFolds = 2;
 optionsCV.leaveoneout = true;
 optionsCV.shuffle = false;
-optionsCV.model = @matLearn_regression_regressOnOneMD;
+optionsCV.model = @matLearn_regression_CV_testModel_intParams;
 optionsCV.loss = 'absolute error';
 [new_model, bestParamValue, bestError] = matLearn_CV(Xtrain, ytrain, optionsCV);
 

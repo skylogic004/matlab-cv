@@ -12,6 +12,8 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
        - paramName: name of parameter to optimize over.
 
        - paramValues: list of values to grid search against.
+                      e.g. [1, 10, 100, 1000]
+                      e.g. {'apples', 'oranges', 'bananas'}
 
        - lossFunction: the loss function used to compute the
                        cross-validation score.
@@ -32,14 +34,21 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
                     score.
 
      Authors:
-        - Issam Laradji, Matt Dirks (2014)
+        - Issam Laradji
+        - Matthew Dirks: http://www.cs.ubc.ca/~mcdirks/
     %}
+
     % Default values
     [model, nFolds, paramName, paramValues, loss, shuffle, earlyStop, leaveOneOut] ...
-           = myProcessOptions(options, 'model', NaN, 'nFolds', 2, ...
-            'paramName', NaN, 'paramValues', NaN, 'loss', ...
-            'square error', 'shuffle', false, 'earlyStop', false, ...
-            'leaveOneOut', false);
+           = myProcessOptions(options,  ...
+            'model', NaN,               ...
+            'nFolds', 2,                ...
+            'paramName', NaN,           ...
+            'paramValues', NaN,         ...
+            'loss', 'square error',     ...
+            'shuffle', false,           ...
+            'earlyStop', false,         ...
+            'leaveOneOut', false        );
         
     if leaveOneOut
         nFolds = size(X,1);
@@ -108,7 +117,12 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
         if avgValidationError < bestError
             bestError = avgValidationError;
             bestModel = trainedModel;
-            bestParamValue = paramValues(paramIndex);
+            
+            if iscell(paramValues)
+                bestParamValue = paramValues{paramIndex};
+            else
+                bestParamValue = paramValues(paramIndex);
+            end
         end
    end
 end
