@@ -14,7 +14,10 @@ function [bestModel] = matLearn_CV(X, y, options)
        - paramValues: list of values to grid search against.
 
        - lossFunction: the loss function used to compute the
-                       cross-validation score
+                       cross-validation score.
+
+       - earlyStop (Added value): stop grid search when the error starts 
+                                  increases, default false.
 
        - shuffle: whether to shuffle the data, default false
     
@@ -26,10 +29,10 @@ function [bestModel] = matLearn_CV(X, y, options)
         - Issam Laradji, Matt Dirks (2014)
     %}
     % Default values
-    [model, nFolds, paramName, paramValues, loss, shuffle] ...
+    [model, nFolds, paramName, paramValues, loss, shuffle, earlyStop] ...
            = myProcessOptions(options, 'model', NaN, 'nFolds', 2, ...
             'paramName', NaN, 'paramValues', NaN, 'loss', ...
-            'square error', 'shuffle', false);
+            'square error', 'shuffle', false, 'earlyStop', false);
 
     % Set loss function
     if strcmp(loss, 'square error')
@@ -48,9 +51,10 @@ function [bestModel] = matLearn_CV(X, y, options)
     % Make sure the param values are sorted
     paramValues = sort(paramValues);
     minError = inf;
-    
-    for j = 1:length(paramValues)
-        subOptions.(options.paramName) = paramValues(j);
+    isDecreasedPrev = false;
+
+    for paramIndex = 1:length(paramValues)
+        subOptions.(options.paramName) = paramValues(paramIndex);
         validationError = 0;
         
         % Compute the accumulated score over the folds
@@ -67,12 +71,24 @@ function [bestModel] = matLearn_CV(X, y, options)
             validationError = validationError + ...
                               lossFunction(yhat, yval);  
         end
-        disp(paramValues(j))
+        disp(paramValues(paramIndex))
         disp(validationError / nFolds);
         disp('OK');
         
+        % Naive early stop method to prune parameter search values
+        if earlyStop && paramIndex > 1
+            if prevValidationError < validationError && isDecreasedPrev            
+                break;
+            end
+            % Check if error is decreasing
+            if prevValidationError > validationError
+                isDecreasedPrev = true;
+            end
+        end
+        
+        prevValidationError = validationError;
         % Compare the minimum loss
-        if validationError / nFolds < minError
+        if validationError < minError
             minError = validationError;
             bestModel = trainedModel;
         end
