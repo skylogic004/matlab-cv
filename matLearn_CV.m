@@ -1,4 +1,4 @@
-function [bestModel] = matLearn_CV(X, y, options)
+function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
     %{  
      Description:
       - This computes the "best" hyper-parameter using cross-validation for classification 
@@ -20,7 +20,13 @@ function [bestModel] = matLearn_CV(X, y, options)
                                   increases, default false.
 
        - shuffle: whether to shuffle the data, default false
-    
+
+       - leaveOneOut: Each sample is used once as a validation set
+                      (singleton) while the remaining samples form the 
+                      training set.
+                      This is equivalent to setting nFolds to the number of
+                      samples in the data.
+
      Output:
        - bestModel: the model with the parameter that achieved the best
                     score.
@@ -29,16 +35,23 @@ function [bestModel] = matLearn_CV(X, y, options)
         - Issam Laradji, Matt Dirks (2014)
     %}
     % Default values
-    [model, nFolds, paramName, paramValues, loss, shuffle, earlyStop] ...
+    [model, nFolds, paramName, paramValues, loss, shuffle, earlyStop, leaveOneOut] ...
            = myProcessOptions(options, 'model', NaN, 'nFolds', 2, ...
             'paramName', NaN, 'paramValues', NaN, 'loss', ...
-            'square error', 'shuffle', false, 'earlyStop', false);
+            'square error', 'shuffle', false, 'earlyStop', false, ...
+            'leaveOneOut', false);
+        
+    if leaveOneOut
+        nFolds = size(X,1);
+    end
 
     % Set loss function
     if strcmp(loss, 'square error')
         lossFunction = @square_error;
-    elseif strcmp(loss, 'zero one loss')
+    elseif strcmp(loss, 'zero one loss') || strcmp(loss, 'zero-one loss')
         lossFunction = @zero_one_loss;
+    elseif strcmp(loss, 'absolute error')
+        lossFunction = @abs_error;
     end
     
     % Shuffle dataset
@@ -50,13 +63,14 @@ function [bestModel] = matLearn_CV(X, y, options)
 
     % Make sure the param values are sorted
     paramValues = sort(paramValues);
-    minError = inf;
+    bestError = inf;
+    bestParamValue = NaN;
     isDecreasedPrev = false;
 
     for paramIndex = 1:length(paramValues)
         subOptions.(options.paramName) = paramValues(paramIndex);
-        validationError = 0;
-        
+        validationErrors = zeros(nFolds,1);
+
         % Compute the accumulated score over the folds
         for fold = 1:nFolds
             % Split dataset into training and validation sets
@@ -67,33 +81,36 @@ function [bestModel] = matLearn_CV(X, y, options)
             % Predict y
             yhat = trainedModel.predict(trainedModel, Xval);
             
-            % Accumulate score
-            validationError = validationError + ...
-                              lossFunction(yhat, yval);  
+            % Record error for this fold
+            validationErrors(fold) = lossFunction(yhat, yval);  
         end
-        disp(paramValues(paramIndex))
-        disp(validationError / nFolds);
-        disp('OK');
+
+        avgValidationError = mean(validationErrors);
+
+        % disp(paramValues(paramIndex))
+        % disp(validationError / nFolds);
+        % disp('OK');
         
         % Naive early stop method to prune parameter search values
         if earlyStop && paramIndex > 1
-            if prevValidationError < validationError && isDecreasedPrev            
-                break;
-            end
             % Check if error is decreasing
-            if prevValidationError > validationError
+            if prevValidationError > avgValidationError
                 isDecreasedPrev = true;
             end
+            % Check if error is increasing, having decreased at least once previously
+            if prevValidationError < avgValidationError && isDecreasedPrev            
+                break;
+            end
         end
+        prevValidationError = avgValidationError;
         
-        prevValidationError = validationError;
-        % Compare the minimum loss
-        if validationError < minError
-            minError = validationError;
+        % Check if new validation error beats previous best
+        if avgValidationError < bestError
+            bestError = avgValidationError;
             bestModel = trainedModel;
+            bestParamValue = paramValues(paramIndex);
         end
    end
-     
 end
 
 function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
@@ -143,10 +160,16 @@ function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
     end
 end
 
-function [score] = square_error(yhat, y)
-    score = mean((yhat - y).^2);
+function [error] = square_error(yhat, y)
+    % Also known as: average L2^2, or MSE
+    error = mean((yhat - y).^2);
 end
 
-function [score] = zero_one_loss(yhat, y)
-    score = mean((yhat ~= y));
+function [error] = abs_error(yhat, y)
+    % Also known as: average L1 norm
+    error = mean(abs(yhat - y));
+end
+
+function [error] = zero_one_loss(yhat, y)
+    error = mean((yhat ~= y));
 end
