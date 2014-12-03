@@ -1,8 +1,8 @@
-function [bestModel] = matlearn_classification_CV(X, y, options)
+function [bestModel] = matLearn_CV(X, y, options)
     %{  
      Description:
-      - Classification where cross-validation is used to choose one hyper-
-        parameter (e.g., nHidden with multi-layer perceptron)
+      - This computes the "best" hyper-parameter using cross-validation for classification 
+        and regression problems (e.g., nHidden with multi-layer perceptron)
     
      Options:
        - model: the learning algorithm.
