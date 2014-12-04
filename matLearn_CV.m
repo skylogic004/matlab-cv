@@ -16,11 +16,12 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
                       e.g. [1, 10, 100, 1000]
                       e.g. {'apples', 'oranges', 'bananas'}
 
-       - lossFunction: the loss function used to compute the
-                       cross-validation score.
+       - loss: name of the loss function used to compute the
+               cross-validation score. Can be one of:
+               'square error', 'zero-one loss', 'absolute error'
 
-       - earlyStop (Added value): stop grid search when the error starts 
-                                  increases, default false.
+       - earlyStop: stop grid search when the error starts increasing after 
+                    it has decreased at least once, default false.
 
        - shuffle: whether to shuffle the data, default false
 
@@ -51,7 +52,24 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
             'shuffle', false,           ...
             'earlyStop', false,         ...
             'leaveOneOut', false        );
-        
+
+    % Default return values
+    bestModel = NaN;
+    bestParamValue = NaN;
+    bestError = NaN;
+    
+    % Verify mandatory arguments
+    if isnan(model) || isnan(paramName) || isnan(paramValues)
+        fprintf('ERROR: model, paramName, and paramValues are mandatory options. Please ensure all have been specified.\n');
+        return
+    end     
+
+    % Verify valid nFolds option
+    if nFolds > size(X,1)
+        fprintf('WARNING: nFolds (%d) must not exceed number of samples in the data (%d), using %d for nFolds instead.\n', nFolds, size(X,1), size(X,1));
+        nFolds = size(X,1);
+    end
+
     % Leave-one-out is a special case of k-fold CV
     % where nFolds = number of samples
     if leaveOneOut
@@ -65,6 +83,9 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
         lossFunction = @zero_one_loss;
     elseif strcmp(loss, 'absolute error')
         lossFunction = @abs_error;
+    else % Default if user provides invalid option
+        fprintf('WARNING: invalid loss function name. loss must be one of "square error", "zero-one loss", or "absolute error"\n');
+        lossFunction = @square_error;
     end
     
     % Shuffle dataset
