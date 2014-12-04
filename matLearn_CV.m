@@ -1,8 +1,9 @@
 function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
     %{  
      Description:
-      - This computes the "best" hyper-parameter using cross-validation for classification 
-        and regression problems (e.g., nHidden with multi-layer perceptron)
+      - This computes the "best" hyper-parameter using cross-validation for
+        classification and regression problems
+        (e.g. nHidden with multi-layer perceptron)
     
      Options:
        - model: the learning algorithm.
@@ -39,7 +40,8 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
     %}
 
     % Default values
-    [model, nFolds, paramName, paramValues, loss, shuffle, earlyStop, leaveOneOut] ...
+    [model, nFolds, paramName, paramValues, ...
+        loss, shuffle, earlyStop, leaveOneOut] ...
            = myProcessOptions(options,  ...
             'model', NaN,               ...
             'nFolds', 2,                ...
@@ -50,6 +52,8 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
             'earlyStop', false,         ...
             'leaveOneOut', false        );
         
+    % Leave-one-out is a special case of k-fold CV
+    % where nFolds = number of samples
     if leaveOneOut
         nFolds = size(X,1);
     end
@@ -106,7 +110,8 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
             if prevValidationError > avgValidationError
                 isDecreasedPrev = true;
             end
-            % Check if error is increasing, having decreased at least once previously
+            % Check if error is increasing, 
+            % having decreased at least once previously
             if prevValidationError < avgValidationError && isDecreasedPrev            
                 break;
             end
@@ -132,7 +137,10 @@ function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
     % fold: which fold to perform
         
     n = size(y,1);    
-    nPerFold = floor(n/nFolds); % excluding the last fold, which takes all remaining rows
+    
+    % calculate number of samples per fold
+    % (except the last fold will take all remaining rows):
+    nPerFold = floor(n/nFolds);
     
     % Create validation set
     valStart = (fold-1)*nPerFold + 1;
