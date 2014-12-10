@@ -34,11 +34,11 @@ fprintf('-----COMBINED----\n');
 optionsCV = [];
 optionsCV.paramName = 'fakeParam';
 optionsCV.paramValues = [.0001 .001 .01 .1 0.4 0.5];
-optionsCV.nFolds = 400;
+optionsCV.nFolds = 3;
 % optionsCV.leaveoneout = true;
 optionsCV.shuffle = false;
-% optionsCV.model = @matLearn_regression_CV_testModel_intParams;
-optionsCV.loss = 'blah';
+optionsCV.model = @matLearn_regression_CV_testModel_intParams;
+optionsCV.loss = 'square error';
 [new_model, bestParamValue, bestError] = matLearn_CV(Xtrain, ytrain, optionsCV);
 
 fprintf('Best param value %0.3f --> error = %0.3f\n', bestParamValue, bestError);

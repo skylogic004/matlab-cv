@@ -59,9 +59,27 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
     bestError = NaN;
     
     % Verify mandatory arguments
-    if isnan(model) || isnan(paramName) || isnan(paramValues)
-        fprintf('ERROR: model, paramName, and paramValues are mandatory options. Please ensure all have been specified.\n');
-        return
+%     if ~ishandle(model) || isnan(model)
+    if ~strcmp(class(model), 'function_handle')
+        fprintf('ERROR: model must be specified, and must be a function handle.\n');
+        return;
+    end
+    
+    if isnan(paramName)
+        fprintf('ERROR: paramName is a mandatory options which was not specified.\n');
+        return;
+    end
+    if ~strcmp(class(paramName), 'char')
+        fprintf('ERROR: paramName must be a single string.\n');
+        return;
+    end
+    if isscalar(paramValues)
+        if isnan(paramValues)
+            fprintf('ERROR: paramValues is a mandatory options which was not specified.\n');
+            return;
+        end     
+        fprintf('ERROR: paramValues must be a vector of more than 1 value.\n');
+        return;
     end     
 
     % Verify valid nFolds option
