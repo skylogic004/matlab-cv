@@ -12,10 +12,8 @@ matlab-cv
 - loss functions: squared-error, absolute error, and zero-one loss.
 
 
-## Matt's files (for testing only - will not be submitted in the end)
-- **matLearn_regression_CV.m**: Cross-validation for regression
-- **matLearn_regression_CV_testModel_intParams.m**: Test regression model (uses fake int parameter)
-- **matLearn_regression_CV_testModel_stringParams.m**: Test regression model (uses fake string parameter)
-- **demo_CV_regression_intParams.m**: CV Regression demo using fake int parameter
-- **demo_CV_regression_stringParams.m**: CV Regression demo using fake string parameter
-
+## Matt's demo files for CV regression
+- **html_demo_CV_KNN/demo_CV_KNN.html**: Demo file in readable format
+- **data/mineral-assay.mat**: Demo dataset. Sensor readings taken of various rock, including weight, XRF, and electromagnetic sensors (68 features total). The target is to predict the amount of aluminum in the rock.
+- **demo_CV_KNN.m**: Demo code of Cross-Validation for regression models, using KNN as an example.
+- **matLearn_regression_KNN_Dirks.m**: My version of KNN, made for the purpose of demoing Cross-Validation.

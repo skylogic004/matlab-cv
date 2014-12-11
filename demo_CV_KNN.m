@@ -10,11 +10,12 @@ function demo_CV_KNN
 
     %% Load the data
     % Our dataset consists of sensor readings taken of a rock, including
-    % weight, XRF, and electromagnetic sensors. The target is to predict
+    % weight, XRF, and electromagnetic sensors (68 features total).
+    % The target is to predict
     % the amount of aluminum in the rock.
     % After loading the data we split dataset into X (features) and y
     % (target)
-    load('mineral-assay.mat');
+    load('./data/mineral-assay.mat');
     Xtrain = M(:, 1:end-1);
     ytrain = M(:, end);
     [N,P] = size(Xtrain);
