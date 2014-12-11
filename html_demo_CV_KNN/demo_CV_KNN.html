@@ -1,0 +1,549 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>demo_CV_KNN</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-12-11"><meta name="DC.source" content="demo_CV_KNN.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Cross Validation demo</a></li><li><a href="#3">Load the data</a></li><li><a href="#4">Setup Cross Validation Options</a></li><li><a href="#5">Mandatory CV Options</a></li><li><a href="#6">Optional CV options</a></li><li><a href="#7">Run Cross-Validation!</a></li><li><a href="#8">Cross-Validation Result</a></li><li><a href="#9">Report the best parameter value and corresponding validation error</a></li><li><a href="#10">Early Stopping</a></li><li><a href="#11">Plotting</a></li><li><a href="#12">This concludes the demo - goodbye!</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> demo_CV_KNN
+</pre><h2>Cross Validation demo<a name="2"></a></h2><p>This demo shows you how to use cross validation on a machine learning algorithm to select the best parameter value for 1 algorithm parameter. In this example we will use the KNN model and its 'k' parameter - the number of neighbors to use in k Nearest Neighbors.</p><p>Author: <b>Matthew Dirks</b> (<a href="http://cs.ubc.ca/~mcdirks/">http://cs.ubc.ca/~mcdirks/</a>)</p><h2>Load the data<a name="3"></a></h2><p>Our dataset consists of sensor readings taken of a rock, including weight, XRF, and electromagnetic sensors. The target is to predict the amount of aluminum in the rock. After loading the data we split dataset into X (features) and y (target)</p><pre class="codeinput">    load(<span class="string">'mineral-assay.mat'</span>);
+    Xtrain = M(:, 1:end-1);
+    ytrain = M(:, end);
+    [N,P] = size(Xtrain);
+</pre><h2>Setup Cross Validation Options<a name="4"></a></h2><p>A struct must be provided to matlearn_CV containing the various options. They are described below, starting with the mandatory options.</p><pre class="codeinput">    optionsCV = [];
+</pre><h2>Mandatory CV Options<a name="5"></a></h2><div><ul><li>paramName: The name of the algorithm parameter within the model you are using (in this case, we are using KNN's 'k' parameter). Don't forget to use quotes!</li><li>paramValues: An array of values that cross validation will test.</li><li>model: Handle to the model object you wish to use, in this case we are using matLearn_regression_KNN_Dirks.</li></ul></div><pre class="codeinput">    optionsCV.paramName = <span class="string">'k'</span>;
+    optionsCV.paramValues = [1:1:50];
+    optionsCV.model = @matLearn_regression_KNN_Dirks;
+</pre><h2>Optional CV options<a name="6"></a></h2><div><ul><li>nFolds: The number of cross-validation folds to perform. Must be an integer between 2 and the size of the dataset.</li><li>leaveOneOut: Instead of specifying nFolds, you can set leaveOneOut to true in which case each sample is used once as a validation set (singleton) while the remaining samples form the training set. This is equivalent to setting nFolds to the number of samples in the data.</li><li>shuffle: If set to true, will shuffle the data before performing cross-validation.</li><li>loss: Name of the loss or scoring function to use. Valid options are: 'square error' and 'absolute error' for regression, and 'zero one loss' for classification tasks.</li><li>earlyStop: If set to true, will stop searching the parameter space early if a local minima is found (see Early Stopping section below).</li></ul></div><pre class="codeinput">    optionsCV.nFolds = 10;
+    optionsCV.leaveOneOut = false;
+    optionsCV.shuffle = false; <span class="comment">% Our demo data is already shuffled</span>
+    optionsCV.loss = <span class="string">'absolute error'</span>;
+    optionsCV.earlyStop = false;
+</pre><h2>Run Cross-Validation!<a name="7"></a></h2><p>matLearn_CV will return the following 4 variables:</p><div><ul><li>model: The best model found (with best parameter value already set, and X &amp; y set to all the data you provided to matLearn_CV).</li><li>bestParamValue: The parameter value that had the best cross-validation error.</li><li>bestError: The the value of the error at the best parameter value.</li><li>validationErrorLog: A struct containing:   <i>paramValues</i> (list of parameter values as used by CV - sorted),   and   <i>errorValues</i> (cross-validation errors     corresponding to paramValues).</li></ul></div><pre class="codeinput">    [model, bestParamValue, bestError, validationErrorLog] = <span class="keyword">...</span>
+        matLearn_CV(Xtrain, ytrain, optionsCV);
+</pre><h2>Cross-Validation Result<a name="8"></a></h2><p><img vspace="5" hspace="5" src="demo_CV_KNN_01.png" alt=""> </p><h2>Report the best parameter value and corresponding validation error<a name="9"></a></h2><pre class="codeinput">    fprintf([<span class="string">'Best parameter value for ''k'' is %d, '</span> <span class="keyword">...</span>
+        <span class="string">'with error of %0.3f\n'</span>], <span class="keyword">...</span>
+        bestParamValue, bestError);
+</pre><pre class="codeoutput">Best parameter value for 'k' is 4, with error of 0.116
+</pre><h2>Early Stopping<a name="10"></a></h2><p>If you set optionsCV.earlyStop = true, then matLearn_CV will stop searching over the parameter values as soon as it suspects that a local minima has been found. It does this by naively checking if the error has begun to rise, after having decreased at least once in the past.</p><p>As you can see in the screenshot below, the error began to rise at k=5, so CV stopped early and returned the best parameter thus far, k=4.</p><p><img vspace="5" hspace="5" src="demo_CV_KNN_earlyStop.png" alt=""> </p><h2>Plotting<a name="11"></a></h2><p>The rest of the demo code, below, is to visually show you what CV did by plotting the validation error at every parameter value, and shows you the target predictions the model would make under each value of KNN's 'k' parameter. The demo plot is interactive if you run it: press right arrow or left arrow to cycle through the predictions at each value of KNN's 'k'.</p><h2>This concludes the demo - goodbye!<a name="12"></a></h2><pre class="codeinput">    fig = figure(<span class="string">'position'</span>, [0, 100, 1200,350]);
+
+    <span class="comment">%%%% PLOT ERROR</span>
+    subplot(1,3,1);
+    plot(validationErrorLog.paramValues, <span class="keyword">...</span>
+         validationErrorLog.errorValues, <span class="string">'b'</span>);
+    hold <span class="string">on</span>;
+
+    <span class="comment">%%%% PLOT PREDICTIONS</span>
+    subplot(1,3,2);
+    hold <span class="string">on</span>;
+
+    modelOptions = [];
+    modelOptions.(optionsCV.paramName) = bestParamValue;
+
+    <span class="keyword">for</span> fold = 1:1:optionsCV.nFolds
+        [tmpX, tmpY, tmpXval, tmpYval] = <span class="keyword">...</span>
+            foldData(Xtrain, ytrain, optionsCV.nFolds, fold);
+        tmpModel = optionsCV.model(tmpX, tmpY, modelOptions);
+        tmpYHat = tmpModel.predict(tmpModel, tmpXval);
+        scatter(tmpYval, tmpYHat, [], <span class="string">'MarkerFaceColor'</span>, <span class="keyword">...</span>
+            [0,fold/optionsCV.nFolds,1], <span class="string">'MarkerEdgeColor'</span>, [0,0,0]);
+    <span class="keyword">end</span>
+
+    <span class="comment">%%%%%% SUBPLOT FORMATTING &amp; TITLES</span>
+    subplot(1,3,1);
+    title(<span class="string">'Error over all parameter values'</span>);
+    xlabel(<span class="string">'Parameter values (number of neighbors, k, in KNN)'</span>);
+    ylabel(<span class="string">'Absolute error'</span>);
+    errorYMax = max(validationErrorLog.errorValues);
+    errorYMin = min(validationErrorLog.errorValues);
+    errorXMin = min(optionsCV.paramValues);
+    errorXMax = max(optionsCV.paramValues);
+    ylim([errorYMin,errorYMax]);
+    xlim([errorXMin-0.2,errorXMax+0.2]);
+    legend(<span class="string">'CV error'</span>,<span class="string">'Location'</span>,<span class="string">'northwest'</span>);
+
+    subplot(1,3,2);
+    title(sprintf(<span class="string">'Predictions using best model found via CV (k=%d)'</span>, <span class="keyword">...</span>
+        bestParamValue));
+    xlabel(<span class="string">'Target: Assay\_Al'</span>);
+    ylabel(<span class="string">'Predicted Assay\_Al'</span>);
+    predictionsYMin = min(ytrain);
+    predictionsYMax = max(ytrain);
+    xlim([predictionsYMin,predictionsYMax]);
+    ylim([predictionsYMin,predictionsYMax]);
+
+    <span class="comment">%%%%%% IDEAL</span>
+    subplot(1,3,2);
+    plot([predictionsYMin, predictionsYMax], <span class="keyword">...</span>
+        [predictionsYMin, predictionsYMax], <span class="string">'k'</span>);
+    subplot(1,3,3);
+    plot([predictionsYMin, predictionsYMax], <span class="keyword">...</span>
+        [predictionsYMin, predictionsYMax], <span class="string">'k'</span>);
+
+    <span class="comment">%%%%%% ANIMATION</span>
+    subplot(1,3,3);
+    xlabel(<span class="string">'Target: Assay\_Al'</span>);
+    ylabel(<span class="string">'Predicted Assay\_Al'</span>);
+    xlim([predictionsYMin,predictionsYMax]);
+    ylim([predictionsYMin,predictionsYMax]);
+    hold <span class="string">on</span>;
+    modelOptions = [];
+
+
+    title(<span class="string">'Press left or right arrow to cycle through parameter values'</span>);
+
+    paramIndex = 0;
+
+    set(fig,<span class="string">'KeyPressFcn'</span>,@keyDown);
+    <span class="keyword">function</span> keyDown(fig, evt)
+        <span class="keyword">if</span> (strcmp(evt.Key, <span class="string">'rightarrow'</span>))
+           showNext(1)
+        <span class="keyword">end</span>
+        <span class="keyword">if</span> (strcmp(evt.Key, <span class="string">'leftarrow'</span>))
+           showNext(-1)
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    h0 = NaN;
+    h = NaN;
+    hText = NaN;
+    <span class="keyword">function</span> showNext(direction)
+    	<span class="keyword">if</span> (paramIndex ~= 0)
+	        <span class="comment">% Reset subplot</span>
+	        delete(h0);
+	        delete(h);
+	        delete(hText);
+        <span class="keyword">end</span>
+
+    	paramIndex = paramIndex + direction;
+    	<span class="keyword">if</span> (paramIndex &gt; length(validationErrorLog.paramValues))
+    		paramIndex = 1;
+		<span class="keyword">end</span>
+		<span class="keyword">if</span> (paramIndex &lt; 1)
+			paramIndex = length(validationErrorLog.paramValues);
+		<span class="keyword">end</span>
+
+        <span class="comment">%%%% PLOT ERROR</span>
+        subplot(1,3,1);
+        tmpParamValue = validationErrorLog.paramValues(paramIndex);
+        h0 = plot([tmpParamValue, tmpParamValue], [0,8], <span class="string">'--k'</span>);
+        hText = text(0.1, 0.9, sprintf(<span class="string">'k = %d'</span>, tmpParamValue), <span class="keyword">...</span>
+            <span class="string">'parent'</span>, subplot(1,3,3),<span class="string">'Units'</span>,<span class="string">'Normalized'</span>);
+
+        <span class="comment">%%%% PLOT PREDICTIONS</span>
+        modelOptions.(optionsCV.paramName) = <span class="keyword">...</span>
+            validationErrorLog.paramValues(paramIndex);
+
+        subplot(1,3,3);
+
+        h = [];
+        <span class="keyword">for</span> fold = 1:1:optionsCV.nFolds
+            [tmpX, tmpY, tmpXval, tmpYval] = <span class="keyword">...</span>
+                foldData(Xtrain, ytrain, optionsCV.nFolds, fold);
+            tmpModel = optionsCV.model(tmpX, tmpY, modelOptions);
+            tmpYHat = tmpModel.predict(tmpModel, tmpXval);
+            h(fold) = scatter(tmpYval, tmpYHat, [], <span class="string">'MarkerFaceColor'</span>, <span class="keyword">...</span>
+                [0,fold/optionsCV.nFolds,1], <span class="string">'MarkerEdgeColor'</span>, [0,0,0]);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% This function copied from matLearn_CV.m -- for demo purposes only.</span>
+    <span class="keyword">function</span> [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
+        <span class="comment">% nFolds: total number of folds</span>
+        <span class="comment">% fold: which fold to perform</span>
+
+        n = size(y,1);
+
+        <span class="comment">% calculate number of samples per fold</span>
+        <span class="comment">% (except the last fold will take all remaining rows):</span>
+        nPerFold = floor(n/nFolds);
+
+        <span class="comment">% Create validation set</span>
+        valStart = (fold-1)*nPerFold + 1;
+        <span class="keyword">if</span> (fold == nFolds)
+            valEnd = n;
+        <span class="keyword">else</span>
+            valEnd = fold*nPerFold;
+        <span class="keyword">end</span>
+
+        yval = y(valStart:valEnd);
+        Xval = X(valStart:valEnd, :);
+
+        <span class="comment">% Training set may consist of 2 parts: the part before the validation</span>
+        <span class="comment">% set, and the part after.</span>
+        <span class="keyword">if</span> (fold == 1)
+            trainStart = valEnd + 1;
+            trainEnd = n;
+            ytrain = y(trainStart:trainEnd);
+            Xtrain = X(trainStart:trainEnd, :);
+        <span class="keyword">elseif</span> (fold == nFolds)
+            trainStart = 1;
+            trainEnd = valStart - 1;
+            ytrain = y(trainStart:trainEnd);
+            Xtrain = X(trainStart:trainEnd, :);
+        <span class="keyword">else</span> <span class="comment">% expect 2 parts, because fold must be in the middle</span>
+            trainStartA = 1;
+            trainEndA = valStart - 1;
+            trainStartB = valEnd + 1;
+            trainEndB = n;
+
+            ytrain = [
+                y(trainStartA:trainEndA);
+                y(trainStartB:trainEndB)
+            ];
+            Xtrain = [
+                X(trainStartA:trainEndA, :);
+                X(trainStartB:trainEndB, :)
+            ];
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="demo_CV_KNN_01.png" alt=""> <pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function demo_CV_KNN
+    %% Cross Validation demo
+    % This demo shows you how to use cross validation on a machine learning
+    % algorithm to select the best parameter value for 1 algorithm
+    % parameter.
+    % In this example we will use the KNN model and its 'k' parameter - the
+    % number of neighbors to use in k Nearest Neighbors.
+    %
+    % Author: *Matthew Dirks* (<http://cs.ubc.ca/~mcdirks/>)
+
+    %% Load the data
+    % Our dataset consists of sensor readings taken of a rock, including
+    % weight, XRF, and electromagnetic sensors. The target is to predict
+    % the amount of aluminum in the rock.
+    % After loading the data we split dataset into X (features) and y
+    % (target)
+    load('mineral-assay.mat');
+    Xtrain = M(:, 1:end-1);
+    ytrain = M(:, end);
+    [N,P] = size(Xtrain);
+
+    %% Setup Cross Validation Options
+    % A struct must be provided to matlearn_CV containing the various
+    % options. They are described below, starting with the mandatory
+    % options.
+    optionsCV = [];
+
+    %% Mandatory CV Options
+    % * paramName: The name of the algorithm parameter within the model you
+    % are using (in this case, we are using KNN's 'k' parameter).
+    % Don't forget to use quotes!
+    % * paramValues: An array of values that cross validation will test. 
+    % * model: Handle to the model object you wish to use, in this case we
+    % are using matLearn_regression_KNN_Dirks.
+    %
+    
+    optionsCV.paramName = 'k';
+    optionsCV.paramValues = [1:1:50];
+    optionsCV.model = @matLearn_regression_KNN_Dirks;
+    
+    %% Optional CV options
+    % * nFolds: The number of cross-validation folds to perform. Must be an
+    % integer between 2 and the size of the dataset. 
+    % * leaveOneOut: Instead of specifying nFolds, you can set leaveOneOut
+    % to true in which case each sample is used once as a validation set 
+    % (singleton) while the remaining samples form the training set. This 
+    % is equivalent to setting nFolds to the number of samples in the data.
+    % * shuffle: If set to true, will shuffle the data before performing
+    % cross-validation.
+    % * loss: Name of the loss or scoring function to use. Valid options
+    % are: 'square error' and 'absolute error' for regression, and 'zero
+    % one loss' for classification tasks.
+    % * earlyStop: If set to true, will stop searching the parameter space
+    % early if a local minima is found (see Early Stopping section below).
+    
+    optionsCV.nFolds = 10;
+    optionsCV.leaveOneOut = false;
+    optionsCV.shuffle = false; % Our demo data is already shuffled
+    optionsCV.loss = 'absolute error';
+    optionsCV.earlyStop = false;
+    
+    %% Run Cross-Validation!
+    % matLearn_CV will return the following 4 variables:
+    % 
+    % * model: The best model found (with best parameter value already set,
+    % and X & y set to all the data you provided to matLearn_CV).
+    % * bestParamValue: The parameter value that had the best
+    % cross-validation error.
+    % * bestError: The the value of the error at the best parameter value.
+    % * validationErrorLog: A struct containing: 
+    %   _paramValues_ (list of parameter values as used by CV - sorted),
+    %   and 
+    %   _errorValues_ (cross-validation errors
+    %     corresponding to paramValues).
+    [model, bestParamValue, bestError, validationErrorLog] = ...
+        matLearn_CV(Xtrain, ytrain, optionsCV);
+
+    %% Cross-Validation Result
+    % <<demo_CV_KNN_01.png>>
+    
+    %% Report the best parameter value and corresponding validation error
+    fprintf(['Best parameter value for ''k'' is %d, ' ...
+        'with error of %0.3f\n'], ...
+        bestParamValue, bestError);
+    
+    %% Early Stopping
+    % If you set optionsCV.earlyStop = true, then matLearn_CV will stop
+    % searching over the parameter values as soon as it suspects that a
+    % local minima has been found.
+    % It does this by naively checking if the error has begun to rise,
+    % after having decreased at least once in the past. 
+    %
+    % As you can see in the screenshot below, the error began to rise at
+    % k=5, so CV stopped early and returned the best parameter thus far,
+    % k=4. 
+    %
+    % <<demo_CV_KNN_earlyStop.png>>
+
+    %% Plotting
+    % The rest of the demo code, below, is to visually show you what CV did
+    % by plotting the validation error at every parameter value, 
+    % and shows you the target predictions the model would make under each
+    % value of KNN's 'k' parameter.
+    % The demo plot is interactive if you run it:
+    % press right arrow or left arrow to cycle through
+    % the predictions at each value of KNN's 'k'.
+    %
+    %%% This concludes the demo - goodbye!
+    fig = figure('position', [0, 100, 1200,350]);
+
+    %%%% PLOT ERROR
+    subplot(1,3,1);
+    plot(validationErrorLog.paramValues, ...
+         validationErrorLog.errorValues, 'b');
+    hold on;
+
+    %%%% PLOT PREDICTIONS
+    subplot(1,3,2);
+    hold on;
+
+    modelOptions = [];
+    modelOptions.(optionsCV.paramName) = bestParamValue;
+
+    for fold = 1:1:optionsCV.nFolds
+        [tmpX, tmpY, tmpXval, tmpYval] = ...
+            foldData(Xtrain, ytrain, optionsCV.nFolds, fold);
+        tmpModel = optionsCV.model(tmpX, tmpY, modelOptions);
+        tmpYHat = tmpModel.predict(tmpModel, tmpXval);
+        scatter(tmpYval, tmpYHat, [], 'MarkerFaceColor', ...
+            [0,fold/optionsCV.nFolds,1], 'MarkerEdgeColor', [0,0,0]);
+    end
+
+    %%%%%% SUBPLOT FORMATTING & TITLES
+    subplot(1,3,1);
+    title('Error over all parameter values');
+    xlabel('Parameter values (number of neighbors, k, in KNN)');
+    ylabel('Absolute error');
+    errorYMax = max(validationErrorLog.errorValues);
+    errorYMin = min(validationErrorLog.errorValues);
+    errorXMin = min(optionsCV.paramValues);
+    errorXMax = max(optionsCV.paramValues);
+    ylim([errorYMin,errorYMax]);
+    xlim([errorXMin-0.2,errorXMax+0.2]);
+    legend('CV error','Location','northwest');
+
+    subplot(1,3,2);
+    title(sprintf('Predictions using best model found via CV (k=%d)', ...
+        bestParamValue));
+    xlabel('Target: Assay\_Al'); 
+    ylabel('Predicted Assay\_Al');
+    predictionsYMin = min(ytrain);
+    predictionsYMax = max(ytrain);
+    xlim([predictionsYMin,predictionsYMax]);
+    ylim([predictionsYMin,predictionsYMax]);
+
+    %%%%%% IDEAL
+    subplot(1,3,2);
+    plot([predictionsYMin, predictionsYMax], ...
+        [predictionsYMin, predictionsYMax], 'k');
+    subplot(1,3,3);
+    plot([predictionsYMin, predictionsYMax], ...
+        [predictionsYMin, predictionsYMax], 'k');
+
+    %%%%%% ANIMATION
+    subplot(1,3,3);
+    xlabel('Target: Assay\_Al'); 
+    ylabel('Predicted Assay\_Al');
+    xlim([predictionsYMin,predictionsYMax]);
+    ylim([predictionsYMin,predictionsYMax]);
+    hold on;
+    modelOptions = [];
+
+
+    title('Press left or right arrow to cycle through parameter values');
+
+    paramIndex = 0;
+
+    set(fig,'KeyPressFcn',@keyDown);
+    function keyDown(fig, evt)
+        if (strcmp(evt.Key, 'rightarrow'))
+           showNext(1) 
+        end
+        if (strcmp(evt.Key, 'leftarrow'))
+           showNext(-1) 
+        end
+    end
+   
+    h0 = NaN;
+    h = NaN;
+    hText = NaN;
+    function showNext(direction)
+    	if (paramIndex ~= 0)
+	        % Reset subplot
+	        delete(h0);
+	        delete(h);
+	        delete(hText);
+        end
+
+    	paramIndex = paramIndex + direction;
+    	if (paramIndex > length(validationErrorLog.paramValues))
+    		paramIndex = 1;
+		end
+		if (paramIndex < 1)
+			paramIndex = length(validationErrorLog.paramValues);
+		end
+
+        %%%% PLOT ERROR
+        subplot(1,3,1);
+        tmpParamValue = validationErrorLog.paramValues(paramIndex);
+        h0 = plot([tmpParamValue, tmpParamValue], [0,8], 'REPLACE_WITH_DASH_DASHk');
+        hText = text(0.1, 0.9, sprintf('k = %d', tmpParamValue), ...
+            'parent', subplot(1,3,3),'Units','Normalized');
+
+        %%%% PLOT PREDICTIONS
+        modelOptions.(optionsCV.paramName) = ...
+            validationErrorLog.paramValues(paramIndex);
+
+        subplot(1,3,3);
+
+        h = [];
+        for fold = 1:1:optionsCV.nFolds
+            [tmpX, tmpY, tmpXval, tmpYval] = ...
+                foldData(Xtrain, ytrain, optionsCV.nFolds, fold);
+            tmpModel = optionsCV.model(tmpX, tmpY, modelOptions);
+            tmpYHat = tmpModel.predict(tmpModel, tmpXval);
+            h(fold) = scatter(tmpYval, tmpYHat, [], 'MarkerFaceColor', ...
+                [0,fold/optionsCV.nFolds,1], 'MarkerEdgeColor', [0,0,0]);
+        end
+    end
+
+    % This function copied from matLearn_CV.m REPLACE_WITH_DASH_DASH for demo purposes only.
+    function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
+        % nFolds: total number of folds
+        % fold: which fold to perform
+
+        n = size(y,1);    
+
+        % calculate number of samples per fold
+        % (except the last fold will take all remaining rows):
+        nPerFold = floor(n/nFolds);
+
+        % Create validation set
+        valStart = (fold-1)*nPerFold + 1;
+        if (fold == nFolds)
+            valEnd = n;
+        else
+            valEnd = fold*nPerFold;
+        end
+
+        yval = y(valStart:valEnd);
+        Xval = X(valStart:valEnd, :);
+
+        % Training set may consist of 2 parts: the part before the validation
+        % set, and the part after.
+        if (fold == 1)
+            trainStart = valEnd + 1;
+            trainEnd = n;
+            ytrain = y(trainStart:trainEnd);
+            Xtrain = X(trainStart:trainEnd, :);
+        elseif (fold == nFolds)
+            trainStart = 1;
+            trainEnd = valStart - 1;
+            ytrain = y(trainStart:trainEnd);
+            Xtrain = X(trainStart:trainEnd, :);
+        else % expect 2 parts, because fold must be in the middle
+            trainStartA = 1;
+            trainEndA = valStart - 1;
+            trainStartB = valEnd + 1;
+            trainEndB = n;
+
+            ytrain = [
+                y(trainStartA:trainEndA);
+                y(trainStartB:trainEndB)
+            ];
+            Xtrain = [
+                X(trainStartA:trainEndA, :);
+                X(trainStartB:trainEndB, :)
+            ];
+        end
+    end
+end
+
+
+
+##### SOURCE END #####
+--></body></html>
