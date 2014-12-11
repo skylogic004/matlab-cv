@@ -1,13 +1,13 @@
-function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
+function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_CV(X, y, options)
     %{  
      Description:
       - This computes the "best" hyper-parameter using cross-validation for
         classification and regression problems
         (e.g. nHidden with multi-layer perceptron)
-    
+
      Options:
        - model: the learning algorithm.
- 
+
        - nFolds: number of folds, default 5.
       
        - paramName: name of parameter to optimize over.
@@ -33,19 +33,28 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
 
      Output:
        - bestModel: the model with the parameter that achieved the best
-                    score.
+                    score. 
+       - bestParamValue: the best parameter value found.
+       - bestError: the average validation error achieved with the best parameter value.
+       - validationErrorLog: struct containing:
+         * paramValues: the parameter values list as used by CV (sorted), and 
+         * errorValues: the average validation error corresponding to the parameter values
 
      Authors:
         - Issam Laradji
         - Matthew Dirks: http://www.cs.ubc.ca/~mcdirks/
     %}
 
+    X_copy = X;
+    y_copy = y;
+    validationErrorLog = [];
+
     % Default values
     [model, nFolds, paramName, paramValues, ...
         loss, shuffle, earlyStop, leaveOneOut] ...
            = myProcessOptions(options,  ...
             'model', NaN,               ...
-            'nFolds', 2,                ...
+            'nFolds', 5,                ...
             'paramName', NaN,           ...
             'paramValues', NaN,         ...
             'loss', 'square error',     ...
@@ -57,14 +66,13 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
     bestModel = NaN;
     bestParamValue = NaN;
     bestError = NaN;
-    
+
     % Verify mandatory arguments
-%     if ~ishandle(model) || isnan(model)
     if ~strcmp(class(model), 'function_handle')
         fprintf('ERROR: model must be specified, and must be a function handle.\n');
         return;
     end
-    
+
     if isnan(paramName)
         fprintf('ERROR: paramName is a mandatory options which was not specified.\n');
         return;
@@ -87,6 +95,10 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
         fprintf('WARNING: nFolds (%d) must not exceed number of samples in the data (%d), using %d for nFolds instead.\n', nFolds, size(X,1), size(X,1));
         nFolds = size(X,1);
     end
+    if nFolds < 2
+        fprintf('WARNING: nFolds (%d) must be greater than 1, using 2 for nFolds instead.\n', nFolds);
+        nFolds = 2;
+    end
 
     % Leave-one-out is a special case of k-fold CV
     % where nFolds = number of samples
@@ -105,7 +117,7 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
         fprintf('WARNING: invalid loss function name. loss must be one of "square error", "zero-one loss", or "absolute error"\n');
         lossFunction = @square_error;
     end
-    
+
     % Shuffle dataset
     if shuffle
         randIndices = randperm(length(X));
@@ -115,9 +127,11 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
 
     % Make sure the param values are sorted
     paramValues = sort(paramValues);
+
     bestError = inf;
     bestParamValue = NaN;
     isDecreasedPrev = false;
+    validationErrorLog.errorValues = [];
 
     for paramIndex = 1:length(paramValues)
         subOptions.(options.paramName) = paramValues(paramIndex);
@@ -130,6 +144,7 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
             
             % Train model
             trainedModel = model(Xtrain, ytrain, subOptions);
+            
             % Predict y
             yhat = trainedModel.predict(trainedModel, Xval);
             
@@ -138,10 +153,9 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
         end
 
         avgValidationError = mean(validationErrors);
-
-        % disp(paramValues(paramIndex))
-        % disp(validationError / nFolds);
-        % disp('OK');
+        validationErrorLog.errorValues(paramIndex) = avgValidationError;
+        
+        % fprintf('avg err: %0.3f\n', avgValidationError);
         
         % Naive early stop method to prune parameter search values
         if earlyStop && paramIndex > 1
@@ -160,7 +174,7 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
         % Check if new validation error beats previous best
         if avgValidationError < bestError
             bestError = avgValidationError;
-            bestModel = trainedModel;
+            % bestModel = trainedModel;
             
             if iscell(paramValues)
                 bestParamValue = paramValues{paramIndex};
@@ -168,7 +182,13 @@ function [bestModel, bestParamValue, bestError] = matLearn_CV(X, y, options)
                 bestParamValue = paramValues(paramIndex);
             end
         end
-   end
+    end
+
+    subOptions.(options.paramName) = bestParamValue;
+    bestModel = model(X_copy, y_copy, subOptions);
+
+    % Return the set of parameters that were actually tried, and the order they were used.
+    validationErrorLog.paramValues = paramValues(1:length(validationErrorLog.errorValues));
 end
 
 function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
