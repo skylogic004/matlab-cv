@@ -243,14 +243,14 @@ end
 
 function [error] = square_error(yhat, y)
     % Also known as: average L2^2, or MSE
-    error = mean((yhat - y).^2);
+    error = mean(mean((yhat - y).^2));
 end
 
 function [error] = abs_error(yhat, y)
     % Also known as: average L1 norm
-    error = mean(abs(yhat - y));
+    error = mean(mean(abs(yhat - y)));
 end
 
 function [error] = zero_one_loss(yhat, y)
-    error = mean((yhat ~= y));
+    error = mean(mean((yhat ~= y)));
 end
