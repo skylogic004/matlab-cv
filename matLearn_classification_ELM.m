@@ -6,11 +6,12 @@ function [model] = matLearn_classification_ELM(X, y, options)
     %     (ELM) algorithm for the purpose of testing matLearn_CV.m
     %   
     % Options:
-    %   - n_hidden: Number of hidden neurons to use in ELM.
-    %   - lambda: Strength of regularization term.
+    %   - nHidden: Number of hidden neurons to use in ELM.
+    %   - lambda: Strength of the regularization term.
     %
     % Authors:
     % 	- Issam H. Laradji: issam.laradji@gmail.com
+    
     [nTrain, nFeatures] = size(X);
     nClasses = max(y);
     

@@ -27,7 +27,7 @@ load data/uspsData.mat
 X = X(1:2000,:);
 y = y(1:2000,:);
 
-fprintf('Using 2000 training samples of USPS for cross-validation\n');
+fprintf('Running cross-validation with 2000 training samples of USPS\n');
 
 % Create the ELM model and set the parameters for cross-validation
 options.model = @matLearn_classification_ELM;
@@ -52,7 +52,7 @@ fprintf('Best number of hidden neurons selected: %d\n', bestParamValue);
 fprintf('Zero-one test error rate with ELM best model is: %.3f\n', testError);
 
 % Plot 1 : Compare cross-validation with earlyStop=true and earlyStop=false
-figure('position', [0, 100, 900,700]);
+figure('position', [0, 100, 900, 700]);
 
 % Set cross-validation folds to 2
 options.nFolds = 2;
@@ -63,7 +63,7 @@ options.earlyStop = true;
 
 % Create sub-plot for earlyStop=true
 subplot(2,2,1);
-title('Cross-validation using the ELM model with earlyStop=true');
+title('Cross-validation with earlyStop=true using the ELM model');
 xlabel('Number of hidden neurons');
 ylabel('Zero-one error rate (USPS validation set)');
 hold on;
@@ -76,14 +76,13 @@ options.earlyStop = false;
 
 % Create sub-plot for earlyStop=false
 subplot(2,2,2);
-title('Cross-validation using the ELM model with earlyStop=false');
+title('Cross-validation with earlyStop=false using the ELM model');
 xlabel('Number of hidden neurons');
 ylabel('Zero-one error rate (USPS validation set)');
 hold on;
 
 plot(validationErrorLog.paramValues, validationErrorLog.errorValues, ...
     'LineWidth',2);
-
 
 % Plot 2 : Compare ELM with high regularization strength
 % against ELM with low regularization strength

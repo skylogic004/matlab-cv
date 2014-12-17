@@ -161,8 +161,6 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
         avgValidationError = mean(validationErrors);
         validationErrorLog.errorValues(paramIndex) = avgValidationError;
         
-        % fprintf('avg err: %0.3f\n', avgValidationError);
-        
         % Naive early stop method to prune parameter search values
         if earlyStop && paramIndex > 1
             % Check if error is decreasing
