@@ -8,6 +8,9 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
      Options:
        - model: the learning algorithm.
 
+       - modelOptions: options you want to pass through to the learning 
+                       algorithm
+
        - nFolds: number of folds, default 5.
       
        - paramName: name of parameter to optimize over.
@@ -35,10 +38,12 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
        - bestModel: the model with the parameter that achieved the best
                     score. 
        - bestParamValue: the best parameter value found.
-       - bestError: the average validation error achieved with the best parameter value.
+       - bestError: the average validation error achieved with the best
+                    parameter value.
        - validationErrorLog: struct containing:
-         * paramValues: the parameter values list as used by CV (sorted), and 
-         * errorValues: the average validation error corresponding to the parameter values
+         * paramValues: the parameter values list as used by CV (sorted)
+         * errorValues: the average validation error corresponding to the
+                        parameter values
 
      Authors:
         - Issam Laradji
@@ -50,10 +55,11 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
     validationErrorLog = [];
 
     % Default values
-    [model, nFolds, paramName, paramValues, ...
+    [model, modelOptions, nFolds, paramName, paramValues, ...
         loss, shuffle, earlyStop, leaveOneOut] ...
            = myProcessOptions(options,  ...
             'model', NaN,               ...
+            'modelOptions', [],         ...
             'nFolds', 5,                ...
             'paramName', NaN,           ...
             'paramValues', NaN,         ...
@@ -134,7 +140,7 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
     validationErrorLog.errorValues = [];
 
     for paramIndex = 1:length(paramValues)
-        subOptions.(options.paramName) = paramValues(paramIndex);
+        modelOptions.(options.paramName) = paramValues(paramIndex);
         validationErrors = zeros(nFolds,1);
 
         % Compute the accumulated score over the folds
@@ -143,7 +149,7 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
             [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold);
             
             % Train model
-            trainedModel = model(Xtrain, ytrain, subOptions);
+            trainedModel = model(Xtrain, ytrain, modelOptions);
             
             % Predict y
             yhat = trainedModel.predict(trainedModel, Xval);
@@ -184,8 +190,8 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
         end
     end
 
-    subOptions.(options.paramName) = bestParamValue;
-    bestModel = model(X_copy, y_copy, subOptions);
+    modelOptions.(options.paramName) = bestParamValue;
+    bestModel = model(X_copy, y_copy, modelOptions);
 
     % Return the set of parameters that were actually tried, and the order they were used.
     validationErrorLog.paramValues = paramValues(1:length(validationErrorLog.errorValues));
@@ -209,7 +215,7 @@ function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
         valEnd = fold*nPerFold;
     end
     
-    yval = y(valStart:valEnd);
+    yval = y(valStart:valEnd, :);
     Xval = X(valStart:valEnd, :);
     
     % Training set may consist of 2 parts: the part before the validation
@@ -217,12 +223,12 @@ function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
     if (fold == 1)
         trainStart = valEnd + 1;
         trainEnd = n;
-        ytrain = y(trainStart:trainEnd);
+        ytrain = y(trainStart:trainEnd, :);
         Xtrain = X(trainStart:trainEnd, :);
     elseif (fold == nFolds)
         trainStart = 1;
         trainEnd = valStart - 1;
-        ytrain = y(trainStart:trainEnd);
+        ytrain = y(trainStart:trainEnd, :);
         Xtrain = X(trainStart:trainEnd, :);
     else % expect 2 parts, because fold must be in the middle
         trainStartA = 1;
@@ -231,8 +237,8 @@ function [Xtrain, ytrain, Xval, yval] = foldData(X, y, nFolds, fold)
         trainEndB = n;
         
         ytrain = [
-            y(trainStartA:trainEndA);
-            y(trainStartB:trainEndB)
+            y(trainStartA:trainEndA, :);
+            y(trainStartB:trainEndB, :)
         ];
         Xtrain = [
             X(trainStartA:trainEndA, :);
