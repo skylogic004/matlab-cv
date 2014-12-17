@@ -1,10 +1,9 @@
-function [] = plot2DClassifier(X,y,model)
+function [] = plot2DClassifier(X,y,model, plotInfo)
 
 increment = 500;
 
-figure;clf;
 plot(X(y==1,1),X(y==1,2),'g+');hold on;
-plot(X(y==-1,1),X(y==-1,2),'bo');
+plot(X(y==2,1),X(y==2,2),'bo');
 
 domain1 = xlim;
 domain1 = domain1(1):(domain1(2)-domain1(1))/increment:domain1(2);
@@ -18,10 +17,10 @@ vals = model.predict(model,[d1(:) d2(:)]);
 
 
 zData = reshape(vals,size(d1));
-contourf(d1,d2,zData+rand(size(zData))/1000,[-1 0],'k');
+contourf(d1,d2,zData+rand(size(zData))/1000,[1 2 3],'k');
 if all(zData(:) == 1)
     cm = [0 .5 0];
-elseif all(zData(:) == -1)
+elseif all(zData(:) == 2)
     cm = [0 0 .5];
 else
     cm = [0 0 .5;0 .5 0];
@@ -29,5 +28,5 @@ end
 colormap(cm);
 
 plot(X(y==1,1),X(y==1,2),'g+');hold on;
-plot(X(y==-1,1),X(y==-1,2),'bo');
-title(model.name);
+plot(X(y==2,1),X(y==2,2),'bo');
+hold on;

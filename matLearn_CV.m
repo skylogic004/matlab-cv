@@ -46,7 +46,7 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
                         parameter values
 
      Authors:
-        - Issam Laradji
+        - Issam Laradji: issam.laradji@gmail.com
         - Matthew Dirks: http://www.cs.ubc.ca/~mcdirks/
     %}
 
