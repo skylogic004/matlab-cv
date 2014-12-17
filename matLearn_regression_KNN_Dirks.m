@@ -48,19 +48,30 @@ function [yHat] = predict(model,XHat)
     X = model.X;
     y = model.y;
     
+    [targetN, targetD] = size(y);
+    
     [N,P] = size(X);
     [T,D] = size(XHat);
     
 %     distances = X.^2*ones(P,T) + ones(N,P)*(XHat').^2 - 2*X*XHat';
     distances = pdist2(X, XHat, distFunc);
     [sortedDistances, sortedIndices] = sort(distances,1); %sort(distances,2);
+    
+    yHat = zeros(T, targetD);
+    
+    for targetYdim = 1:1:targetD
+        tmpY = y(:, targetYdim);
+        sortedNeighbors = tmpY( sortedIndices(1:k, :) );
+        
 
-    sortedNeighbors = y( sortedIndices(1:k, :) ); %indices(:, 1:k)
-    if (size(sortedNeighbors,2) == 1) % this means k = 1, so no need to average
-        yHat = sortedNeighbors;
-    else
-%         yHat = mean(yVotes,1)';
-        yHat = model.regressionScoringFunc(sortedNeighbors, sortedDistances(1:k, :), model)';
+        if (size(sortedNeighbors,2) == 1) 
+            % if true, means k = 1, so no need to average
+            tmpYHat = sortedNeighbors;
+        else
+            tmpYHat = model.regressionScoringFunc(sortedNeighbors, sortedDistances(1:k, :), model)';
+        end
+        
+        yHat(:, targetYdim) = tmpYHat;
     end
 end
 
