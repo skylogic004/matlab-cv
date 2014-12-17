@@ -1,8 +1,8 @@
-function demo_CV_KNN
+function demo_CV_regression_KNN_Dirks
     %% Cross Validation demo
     % This demo shows you how to use cross validation on a machine learning
-    % algorithm to select the best parameter value for 1 algorithm
-    % parameter.
+    % algorithm for regression to select the best parameter value for
+    % 1 algorithm parameter.
     % In this example we will use the KNN model and its 'k' parameter - the
     % number of neighbors to use in k Nearest Neighbors.
     %
@@ -11,8 +11,8 @@ function demo_CV_KNN
     %% Load the data
     % Our dataset consists of sensor readings taken of a rock, including
     % weight, XRF, and electromagnetic sensors (68 features total).
-    % The target is to predict
-    % the amount of aluminum in the rock.
+    % The target is to predict the amount of aluminum (Al) in the rock,
+    % which is determined via chemical assay of the rock.
     % After loading the data we split dataset into X (features) and y
     % (target)
     load('./data/mineral-assay.mat');
@@ -53,12 +53,17 @@ function demo_CV_KNN
     % one loss' for classification tasks.
     % * earlyStop: If set to true, will stop searching the parameter space
     % early if a local minima is found (see Early Stopping section below).
+    % * modelOptions: A struct of options to be passed to your chosen
+    % model. In this example, KNN's 'distFunc' parameter is passed through.
     
     optionsCV.nFolds = 10;
     optionsCV.leaveOneOut = false;
     optionsCV.shuffle = false; % Our demo data is already shuffled
     optionsCV.loss = 'absolute error';
     optionsCV.earlyStop = false;
+    modelOptions = [];
+    modelOptions.distFunc = 'cosine';
+    optionsCV.modelOptions = modelOptions;
     
     %% Run Cross-Validation!
     % matLearn_CV will return the following 4 variables:

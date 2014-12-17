@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>demo_CV_KNN</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-12-11"><meta name="DC.source" content="demo_CV_KNN.m"><style type="text/css">
+      --><title>demo_CV_regression_KNN_Dirks</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-12-17"><meta name="DC.source" content="demo_CV_regression_KNN_Dirks.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,8 +66,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Cross Validation demo</a></li><li><a href="#3">Load the data</a></li><li><a href="#4">Setup Cross Validation Options</a></li><li><a href="#5">Mandatory CV Options</a></li><li><a href="#6">Optional CV options</a></li><li><a href="#7">Run Cross-Validation!</a></li><li><a href="#8">Cross-Validation Result</a></li><li><a href="#9">Report the best parameter value and corresponding validation error</a></li><li><a href="#10">Early Stopping</a></li><li><a href="#11">Plotting</a></li><li><a href="#12">This concludes the demo - goodbye!</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> demo_CV_KNN
-</pre><h2>Cross Validation demo<a name="2"></a></h2><p>This demo shows you how to use cross validation on a machine learning algorithm to select the best parameter value for 1 algorithm parameter. In this example we will use the KNN model and its 'k' parameter - the number of neighbors to use in k Nearest Neighbors.</p><p>Author: <b>Matthew Dirks</b> (<a href="http://cs.ubc.ca/~mcdirks/">http://cs.ubc.ca/~mcdirks/</a>)</p><h2>Load the data<a name="3"></a></h2><p>Our dataset consists of sensor readings taken of a rock, including weight, XRF, and electromagnetic sensors. The target is to predict the amount of aluminum in the rock. After loading the data we split dataset into X (features) and y (target)</p><pre class="codeinput">    load(<span class="string">'mineral-assay.mat'</span>);
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Cross Validation demo</a></li><li><a href="#3">Load the data</a></li><li><a href="#4">Setup Cross Validation Options</a></li><li><a href="#5">Mandatory CV Options</a></li><li><a href="#6">Optional CV options</a></li><li><a href="#7">Run Cross-Validation!</a></li><li><a href="#8">Cross-Validation Result</a></li><li><a href="#9">Report the best parameter value and corresponding validation error</a></li><li><a href="#10">Early Stopping</a></li><li><a href="#11">Plotting</a></li><li><a href="#12">This concludes the demo - goodbye!</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> demo_CV_regression_KNN_Dirks
+</pre><h2>Cross Validation demo<a name="2"></a></h2><p>This demo shows you how to use cross validation on a machine learning algorithm for regression to select the best parameter value for 1 algorithm parameter. In this example we will use the KNN model and its 'k' parameter - the number of neighbors to use in k Nearest Neighbors.</p><p>Author: <b>Matthew Dirks</b> (<a href="http://cs.ubc.ca/~mcdirks/">http://cs.ubc.ca/~mcdirks/</a>)</p><h2>Load the data<a name="3"></a></h2><p>Our dataset consists of sensor readings taken of a rock, including weight, XRF, and electromagnetic sensors (68 features total). The target is to predict the amount of aluminum (Al) in the rock, which is determined via chemical assay of the rock. After loading the data we split dataset into X (features) and y (target)</p><pre class="codeinput">    load(<span class="string">'./data/mineral-assay.mat'</span>);
     Xtrain = M(:, 1:end-1);
     ytrain = M(:, end);
     [N,P] = size(Xtrain);
@@ -75,11 +75,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 </pre><h2>Mandatory CV Options<a name="5"></a></h2><div><ul><li>paramName: The name of the algorithm parameter within the model you are using (in this case, we are using KNN's 'k' parameter). Don't forget to use quotes!</li><li>paramValues: An array of values that cross validation will test.</li><li>model: Handle to the model object you wish to use, in this case we are using matLearn_regression_KNN_Dirks.</li></ul></div><pre class="codeinput">    optionsCV.paramName = <span class="string">'k'</span>;
     optionsCV.paramValues = [1:1:50];
     optionsCV.model = @matLearn_regression_KNN_Dirks;
-</pre><h2>Optional CV options<a name="6"></a></h2><div><ul><li>nFolds: The number of cross-validation folds to perform. Must be an integer between 2 and the size of the dataset.</li><li>leaveOneOut: Instead of specifying nFolds, you can set leaveOneOut to true in which case each sample is used once as a validation set (singleton) while the remaining samples form the training set. This is equivalent to setting nFolds to the number of samples in the data.</li><li>shuffle: If set to true, will shuffle the data before performing cross-validation.</li><li>loss: Name of the loss or scoring function to use. Valid options are: 'square error' and 'absolute error' for regression, and 'zero one loss' for classification tasks.</li><li>earlyStop: If set to true, will stop searching the parameter space early if a local minima is found (see Early Stopping section below).</li></ul></div><pre class="codeinput">    optionsCV.nFolds = 10;
+</pre><h2>Optional CV options<a name="6"></a></h2><div><ul><li>nFolds: The number of cross-validation folds to perform. Must be an integer between 2 and the size of the dataset.</li><li>leaveOneOut: Instead of specifying nFolds, you can set leaveOneOut to true in which case each sample is used once as a validation set (singleton) while the remaining samples form the training set. This is equivalent to setting nFolds to the number of samples in the data.</li><li>shuffle: If set to true, will shuffle the data before performing cross-validation.</li><li>loss: Name of the loss or scoring function to use. Valid options are: 'square error' and 'absolute error' for regression, and 'zero one loss' for classification tasks.</li><li>earlyStop: If set to true, will stop searching the parameter space early if a local minima is found (see Early Stopping section below).</li><li>modelOptions: A struct of options to be passed to your chosen model. In this example, KNN's 'distFunc' parameter is passed through.</li></ul></div><pre class="codeinput">    optionsCV.nFolds = 10;
     optionsCV.leaveOneOut = false;
     optionsCV.shuffle = false; <span class="comment">% Our demo data is already shuffled</span>
     optionsCV.loss = <span class="string">'absolute error'</span>;
     optionsCV.earlyStop = false;
+    modelOptions = [];
+    modelOptions.distFunc = <span class="string">'cosine'</span>;
+    optionsCV.modelOptions = modelOptions;
 </pre><h2>Run Cross-Validation!<a name="7"></a></h2><p>matLearn_CV will return the following 4 variables:</p><div><ul><li>model: The best model found (with best parameter value already set, and X &amp; y set to all the data you provided to matLearn_CV).</li><li>bestParamValue: The parameter value that had the best cross-validation error.</li><li>bestError: The the value of the error at the best parameter value.</li><li>validationErrorLog: A struct containing:   <i>paramValues</i> (list of parameter values as used by CV - sorted),   and   <i>errorValues</i> (cross-validation errors     corresponding to paramValues).</li></ul></div><pre class="codeinput">    [model, bestParamValue, bestError, validationErrorLog] = <span class="keyword">...</span>
         matLearn_CV(Xtrain, ytrain, optionsCV);
 </pre><h2>Cross-Validation Result<a name="8"></a></h2><p><img vspace="5" hspace="5" src="demo_CV_KNN_01.png" alt=""> </p><h2>Report the best parameter value and corresponding validation error<a name="9"></a></h2><pre class="codeinput">    fprintf([<span class="string">'Best parameter value for ''k'' is %d, '</span> <span class="keyword">...</span>
@@ -258,14 +261,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
             ];
         <span class="keyword">end</span>
     <span class="keyword">end</span>
-</pre><img vspace="5" hspace="5" src="demo_CV_KNN_01.png" alt=""> <pre class="codeinput"><span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="demo_CV_regression_KNN_Dirks_01.png" alt=""> <pre class="codeinput"><span class="keyword">end</span>
 </pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function demo_CV_KNN
+function demo_CV_regression_KNN_Dirks
     %% Cross Validation demo
     % This demo shows you how to use cross validation on a machine learning
-    % algorithm to select the best parameter value for 1 algorithm
-    % parameter.
+    % algorithm for regression to select the best parameter value for
+    % 1 algorithm parameter.
     % In this example we will use the KNN model and its 'k' parameter - the
     % number of neighbors to use in k Nearest Neighbors.
     %
@@ -273,11 +276,12 @@ function demo_CV_KNN
 
     %% Load the data
     % Our dataset consists of sensor readings taken of a rock, including
-    % weight, XRF, and electromagnetic sensors. The target is to predict
-    % the amount of aluminum in the rock.
+    % weight, XRF, and electromagnetic sensors (68 features total).
+    % The target is to predict the amount of aluminum (Al) in the rock,
+    % which is determined via chemical assay of the rock.
     % After loading the data we split dataset into X (features) and y
     % (target)
-    load('mineral-assay.mat');
+    load('./data/mineral-assay.mat');
     Xtrain = M(:, 1:end-1);
     ytrain = M(:, end);
     [N,P] = size(Xtrain);
@@ -315,12 +319,17 @@ function demo_CV_KNN
     % one loss' for classification tasks.
     % * earlyStop: If set to true, will stop searching the parameter space
     % early if a local minima is found (see Early Stopping section below).
+    % * modelOptions: A struct of options to be passed to your chosen
+    % model. In this example, KNN's 'distFunc' parameter is passed through.
     
     optionsCV.nFolds = 10;
     optionsCV.leaveOneOut = false;
     optionsCV.shuffle = false; % Our demo data is already shuffled
     optionsCV.loss = 'absolute error';
     optionsCV.earlyStop = false;
+    modelOptions = [];
+    modelOptions.distFunc = 'cosine';
+    optionsCV.modelOptions = modelOptions;
     
     %% Run Cross-Validation!
     % matLearn_CV will return the following 4 variables:
