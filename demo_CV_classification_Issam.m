@@ -30,7 +30,7 @@ y = y(1:2000,:);
 fprintf('Running cross-validation with 2000 training samples of USPS\n');
 
 % Create the ELM model and set the parameters for cross-validation
-options.model = @matLearn_classification_ELM;
+options.model = @matLearn_classification_ELM_Issam;
 options.paramName = 'nHidden';
 options.loss = 'zero one loss';
 options.earlyStop = true;
@@ -97,7 +97,7 @@ y(y==-1) = 2;
 % Train ELM with low regularization strength
 options = [];
 options.lambda= 1;
-elmModel = matLearn_classification_ELM(X, y, options);
+elmModel = matLearn_classification_ELM_Issam(X, y, options);
 
 % Create sub-plot for ELM decision boundary
 subplot(2,2,3);
@@ -110,7 +110,7 @@ plot2DClassifier(X, y, elmModel);
 
 % Train ELM with high regularization strength
 options.lambda= 1000;
-elmModel = matLearn_classification_ELM(X, y, options);
+elmModel = matLearn_classification_ELM_Issam(X, y, options);
 
 % Create sub-plot for ELM decision boundary
 subplot(2,2,4);

@@ -1,4 +1,4 @@
-function [model] = matLearn_classification_ELM(X, y, options)
+function [model] = matLearn_classification_ELM_Issam(X, y, options)
     % matLearn_classification_ELM_issam(X,y,options)
     %
     % Description:
