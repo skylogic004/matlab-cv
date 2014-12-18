@@ -19,7 +19,7 @@ function [model] = matLearn_classification_ELM_Issam(X, y, options)
     [model.nHidden, model.lambda] = myProcessOptions(options,  ...
             'nHidden', 100, 'lambda', 1);
 
-    % Convert multi-class numerical labels to binary
+    % Convert multi-class numerical labels to binarized vectors
     y_binarized = zeros(size(y, 1), nClasses);
     for i=1:nTrain
         y_binarized(i, y(i)) = 1;

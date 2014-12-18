@@ -1,5 +1,5 @@
 function demo_CV_classification_Issam
-%% Cross Validation (Issam Laradji) demo
+%% Cross Validation demo
 % This demo shows you how to use cross validation on a machine learning
 % algorithm to select the best parameter value for 1 algorithm
 % parameter.
@@ -123,7 +123,7 @@ plot2DClassifier(X, y, elmModel);
 
 
 function [] = plot2DClassifier(X, y, model)
-
+% Plots 2D decision boundary of the model against a set of samples.
 increment = 500;
 
 plot(X(y==1,1),X(y==1,2),'g+');hold on;

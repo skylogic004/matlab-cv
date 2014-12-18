@@ -8,8 +8,8 @@ function [bestModel, bestParamValue, bestError, validationErrorLog] = matLearn_C
      Options:
        - model: the learning algorithm.
 
-       - modelOptions: options you want to pass through to the learning 
-                       algorithm
+       - modelOptions: options you want to pass through to the 
+                       learning algorithm (e.g. parameters for the model).
 
        - nFolds: number of folds, default 5.
       
